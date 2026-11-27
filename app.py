@@ -1,4 +1,3 @@
-"""TaxiFare NYC — interface Streamlit en français."""
 import base64
 import math
 import json
@@ -13,7 +12,7 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="TaxiFare NYC | Estimation de taxi", page_icon="🚕", layout="wide")
 
 NY = ZoneInfo("America/New_York")
-# Coordonnées approximatives, dans l'ordre latitude, longitude.
+
 PLACES = {
     "Empire State Building": (40.7484, -73.9857),
     "Central Park · Metropolitan Museum": (40.7850, -73.9680),
@@ -70,7 +69,7 @@ CSS = """
 </style>
 """
 
-# Illustration vectorielle originale, embarquée : aucun fichier image ni clé nécessaire.
+
 HERO = """
 <div class="nyc-brand"><div class="brand-main"><span class="brand-mark">🚕</span>TaxiFare<span style="color:#987000">NYC</span></div><div class="brand-tag">New York City / États-Unis</div></div>
 <div class="hero">
@@ -129,7 +128,6 @@ def pickup_utc(date, time):
 
 
 def get_fare(params):
-    # Compatibilité avec la PR du buddy et les secrets existants.
     API_URL = os.getenv("API_URL") or st.secrets["API_URL"]
     response = requests.get(normalize_url(API_URL), params=params, timeout=15)
     response.raise_for_status()
@@ -140,7 +138,6 @@ def get_fare(params):
 
 
 def draw_map(start, end):
-    # Vue aérienne officielle de New York, sans clé API.
     coords = json.dumps([list(start), list(end)], allow_nan=False)
     html = r"""<!doctype html>
 <html lang="fr"><head><meta charset="utf-8">
@@ -150,10 +147,8 @@ def draw_map(start, end):
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
 html,body{margin:0;height:100%;font-family:Arial,sans-serif}
-#map{height:100%;width:100%;border-radius:14px;background:#172334;overflow:hidden}
 .leaflet-control-attribution{font-size:10px}
 .leaflet-tooltip{font-weight:700;border-radius:6px}
-#notice{position:absolute;bottom:24px;left:10px;right:10px;z-index:1000;display:none;background:#fff;color:#172334;padding:8px;border-radius:8px;font-size:12px}
 </style></head><body><div id="map" aria-label="Carte aérienne de New York"></div><div id="notice" role="status"></div>
 <script>
 const points = __POINTS__;
@@ -161,9 +156,9 @@ const map = L.map('map', {minZoom:9,maxZoom:21,scrollWheelZoom:false,zoomControl
 const photo = L.tileLayer('https://tiles.arcgis.com/tiles/yG5s3afENB5iO9fj/arcgis/rest/services/NYC_Orthos_2024/MapServer/tile/{z}/{y}/{x}', {maxZoom:21,attribution:'Photographies aériennes 2024 © <a href="https://gis.nyc.gov/tiles/" target="_blank" rel="noopener">NYC OTI</a>'});
 const streets = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxNativeZoom:19,maxZoom:21,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'});
 L.control.layers({'Vue aérienne':photo,'Plan de ville':streets},null,{position:'topright',collapsed:false}).addTo(map);
-L.polyline(points,{color:'#172334',weight:7,opacity:.85,interactive:false}).addTo(map);
-L.polyline(points,{color:'#ffce32',weight:4,opacity:1,interactive:false}).addTo(map);
-points.forEach((p,i)=>L.circleMarker(p,{radius:8,color:'#fff',weight:3,fillColor:i===0?'#ffce32':'#00ab9d',fillOpacity:1}).addTo(map).bindTooltip(i===0?'Départ':'Arrivée',{direction:'top',offset:[0,-8]}));
+L.polyline(points,{color:'
+L.polyline(points,{color:'
+points.forEach((p,i)=>L.circleMarker(p,{radius:8,color:'
 const fitTrip = ()=>{map.invalidateSize({pan:false});map.fitBounds(L.latLngBounds(points),{padding:[38,38],maxZoom:17});};
 fitTrip();
 let previousSize = '';
@@ -190,8 +185,6 @@ def show_result(fare):
     st.html(f'<div class="fare-card" role="status"><div class="fare-kicker">03 / VOTRE ESTIMATION</div><div class="fare-amount">{amount}</div><div class="fare-caption">{note}</div></div>')
 
 
-# Streamlit peut filtrer les SVG directement intégrés au HTML.
-# On utilise donc la même illustration comme arrière-plan CSS autonome.
 svg_start = HERO.index("<svg ")
 svg_end = HERO.index("</svg>", svg_start) + len("</svg>")
 hero_svg = HERO[svg_start:svg_end]
