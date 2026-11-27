@@ -33,7 +33,7 @@ if st.button("Predict fare"):
         "passenger_count": passenger_count,
     }
 
-     url = API_URL.rstrip("/")
+    url = API_URL.rstrip("/")
     if not url.endswith("/predict"):
         url += "/predict"
 
