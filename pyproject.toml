@@ -1,0 +1,19 @@
+[project]
+name = "taxifare-frontend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Raphael Wilquin", email = "raphael.wilquin08@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "streamlit>=1.67.0",
+]
+
+[project.scripts]
+taxifare-frontend = "taxifare_frontend:main"
+
+[build-system]
+requires = ["uv_build>=0.13.9,<0.14.0"]
+build-backend = "uv_build"
