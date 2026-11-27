@@ -39,7 +39,7 @@ if st.button("Predict fare"):
         "passenger_count": passenger_count
     }
 
-    url = "https://taxifare-416835582272.europe-west1.run.app/predict"
+    url = st.secrets["API_URL"]
 
     try:
         response = requests.get(url, params=params, timeout=15)
