@@ -9,10 +9,9 @@ import requests
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="TaxiFare NYC | Estimation de taxi", page_icon="🚕", layout="wide")
+st.set_page_config(page_title="TaxiFare NYC | Estimation de taxi", page_icon="\U0001F695", layout="wide")
 
 NY = ZoneInfo("America/New_York")
-
 PLACES = {
     "Empire State Building": (40.7484, -73.9857),
     "Central Park · Metropolitan Museum": (40.7850, -73.9680),
@@ -69,9 +68,8 @@ CSS = """
 </style>
 """
 
-
 HERO = """
-<div class="nyc-brand"><div class="brand-main"><span class="brand-mark">🚕</span>TaxiFare<span style="color:#987000">NYC</span></div><div class="brand-tag">New York City / États-Unis</div></div>
+<div class="nyc-brand"><div class="brand-main"><span class="brand-mark">&#128661;</span>TaxiFare<span style="color:#987000">NYC</span></div><div class="brand-tag">New York City / États-Unis</div></div>
 <div class="hero">
 <div class="hero-copy"><div class="hero-kicker">40°43′ N · 74°00′ O &nbsp; / &nbsp; NYC</div><h1>New York,<br>à portée de <span>taxi.</span></h1><p>De Manhattan à Brooklyn, estimez le prix de votre course en quelques secondes.</p></div>
 <svg class="hero-art" viewBox="0 0 680 280" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -83,9 +81,9 @@ HERO = """
 <g fill="url(#windows)"><path d="M146 146H182V227H146Z"/><path d="M207 110H237V227H207Z"/><path d="M272 87H324V230H272Z"/><path d="M352 154H381V227H352Z"/><path d="M413 111H477V227H413Z"/><path d="M508 86H558V230H508Z"/><path d="M596 127H628V230H596Z"/></g>
 <g stroke="#f1c65b" stroke-width="1.5" fill="none" opacity=".9"><path d="M279 79H317M285 57H311M291 43H305M296 11H300"/><path d="M420 91Q445 67 470 91M416 102Q445 78 474 102M431 78Q445 61 459 78M445 32V18"/><path d="M535 45V12M501 79L535 45L565 79"/></g>
 <path d="M0 238H680V280H0Z" fill="#101c2b"/><path d="M0 239H680" stroke="#8096aa" opacity=".45"/><path d="M0 271H680" stroke="#ffd86e" stroke-dasharray="28 22" opacity=".5"/>
-<!-- Statue de la Liberté, silhouette stylisée -->
+
 <g fill="#82a99f"><path d="M105 238H151V229H145V222H111V229H105Z"/><path d="M116 222L120 190L113 173L119 158L111 145L105 128L108 120L115 122L122 140L128 153L138 155L147 169L140 184L147 222Z"/><circle cx="133" cy="145" r="7"/><path d="M126 140L121 132L129 137L130 127L134 136L140 128L139 138L147 134L141 143Z"/><path d="M105 128L99 114H105L111 125Z"/><path d="M101 114Q94 108 101 99Q102 106 107 109L106 114Z" fill="#ffce32"/></g>
-<!-- Taxi jaune au premier plan -->
+
 <g transform="translate(392 197)"><ellipse cx="113" cy="53" rx="115" ry="8" fill="#000" opacity=".35"/><path d="M7 30Q10 19 26 18L49 6Q54 2 67 2H139Q150 2 158 9L181 24L205 29Q216 32 218 42V48H3V39Q3 34 7 30Z" fill="url(#taxiPaint)" stroke="#f5ca42" stroke-width="1.5"/><path d="M55 8H94V23H36ZM102 8H139Q145 8 151 14L166 23H102Z" fill="#263c55"/><path d="M96 26V44M169 27V44" stroke="#a97800" opacity=".6"/><rect x="88" y="-5" width="36" height="8" rx="2" fill="#ffde70"/><text x="106" y="1" text-anchor="middle" font-size="6" font-weight="bold" fill="#172334">TAXI</text><g fill="#172334"><circle cx="44" cy="48" r="13"/><circle cx="181" cy="48" r="13"/><rect x="108" y="30" width="24" height="5"/></g><g fill="#8393a4"><circle cx="44" cy="48" r="5"/><circle cx="181" cy="48" r="5"/></g><rect x="6" y="34" width="10" height="5" rx="2" fill="#fff0b5"/><rect x="207" y="34" width="10" height="5" rx="2" fill="#f78255"/></g>
 </svg></div>
 """
@@ -114,7 +112,6 @@ def normalize_url(value):
 
 
 def pickup_utc(date, time):
-    """Convertit l'heure de New York en UTC ; rejette les heures DST ambiguës."""
     naive = datetime.combine(date, time)
     candidates = set()
     for fold in (0, 1):
@@ -147,8 +144,10 @@ def draw_map(start, end):
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
 html,body{margin:0;height:100%;font-family:Arial,sans-serif}
+#map{height:100%;width:100%;border-radius:14px;background:#172334;overflow:hidden}
 .leaflet-control-attribution{font-size:10px}
 .leaflet-tooltip{font-weight:700;border-radius:6px}
+#notice{position:absolute;bottom:24px;left:10px;right:10px;z-index:1000;display:none;background:#fff;color:#172334;padding:8px;border-radius:8px;font-size:12px}
 </style></head><body><div id="map" aria-label="Carte aérienne de New York"></div><div id="notice" role="status"></div>
 <script>
 const points = __POINTS__;
@@ -156,9 +155,9 @@ const map = L.map('map', {minZoom:9,maxZoom:21,scrollWheelZoom:false,zoomControl
 const photo = L.tileLayer('https://tiles.arcgis.com/tiles/yG5s3afENB5iO9fj/arcgis/rest/services/NYC_Orthos_2024/MapServer/tile/{z}/{y}/{x}', {maxZoom:21,attribution:'Photographies aériennes 2024 © <a href="https://gis.nyc.gov/tiles/" target="_blank" rel="noopener">NYC OTI</a>'});
 const streets = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxNativeZoom:19,maxZoom:21,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'});
 L.control.layers({'Vue aérienne':photo,'Plan de ville':streets},null,{position:'topright',collapsed:false}).addTo(map);
-L.polyline(points,{color:'
-L.polyline(points,{color:'
-points.forEach((p,i)=>L.circleMarker(p,{radius:8,color:'
+L.polyline(points,{color:'#172334',weight:7,opacity:.85,interactive:false}).addTo(map);
+L.polyline(points,{color:'#ffce32',weight:4,opacity:1,interactive:false}).addTo(map);
+points.forEach((p,i)=>L.circleMarker(p,{radius:8,color:'#fff',weight:3,fillColor:i===0?'#ffce32':'#00ab9d',fillOpacity:1}).addTo(map).bindTooltip(i===0?'Départ':'Arrivée',{direction:'top',offset:[0,-8]}));
 const fitTrip = ()=>{map.invalidateSize({pan:false});map.fitBounds(L.latLngBounds(points),{padding:[38,38],maxZoom:17});};
 fitTrip();
 let previousSize = '';
