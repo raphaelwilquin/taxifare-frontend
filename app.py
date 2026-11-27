@@ -145,6 +145,7 @@ def draw_map(start, end):
     html = r"""<!doctype html>
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
@@ -158,16 +159,22 @@ html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 const points = __POINTS__;
 const map = L.map('map', {minZoom:9,maxZoom:21,scrollWheelZoom:false,zoomControl:true});
 const photo = L.tileLayer('https://tiles.arcgis.com/tiles/yG5s3afENB5iO9fj/arcgis/rest/services/NYC_Orthos_2024/MapServer/tile/{z}/{y}/{x}', {maxZoom:21,attribution:'Photographies aériennes 2024 © <a href="https://gis.nyc.gov/tiles/" target="_blank" rel="noopener">NYC OTI</a>'});
-const streets = L.tileLayer('https://maps{s}.nyc.gov/tms/1.0.0/carto/basemap/{z}/{x}/{y}.jpg', {subdomains:'1234',tms:true,minNativeZoom:8,maxNativeZoom:19,maxZoom:21,attribution:'© <a href="https://gis.nyc.gov/tiles/" target="_blank" rel="noopener">NYC OTI</a>'});
-photo.addTo(map);
+const streets = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxNativeZoom:19,maxZoom:21,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'});
 L.control.layers({'Vue aérienne':photo,'Plan de ville':streets},null,{position:'topright',collapsed:false}).addTo(map);
 L.polyline(points,{color:'#172334',weight:7,opacity:.85,interactive:false}).addTo(map);
 L.polyline(points,{color:'#ffce32',weight:4,opacity:1,interactive:false}).addTo(map);
 points.forEach((p,i)=>L.circleMarker(p,{radius:8,color:'#fff',weight:3,fillColor:i===0?'#ffce32':'#00ab9d',fillOpacity:1}).addTo(map).bindTooltip(i===0?'Départ':'Arrivée',{direction:'top',offset:[0,-8]}));
-map.fitBounds(L.latLngBounds(points),{padding:[38,38],maxZoom:17});
+const fitTrip = ()=>{map.invalidateSize({pan:false});map.fitBounds(L.latLngBounds(points),{padding:[38,38],maxZoom:17});};
+fitTrip();
+let previousSize = '';
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(()=>{const el=map.getContainer();const size=el.clientWidth+'x'+el.clientHeight;if(size!==previousSize && el.clientWidth && el.clientHeight){previousSize=size;fitTrip();}}).observe(map.getContainer());
+}
 const notice=document.getElementById('notice');
-photo.on('tileerror',()=>{notice.textContent='Certaines photos ne sont pas disponibles. Vous pouvez essayer le plan de ville.';notice.style.display='block';});
+photo.on('tileerror',()=>{if(map.hasLayer(photo)){notice.textContent='Certaines photos ne sont pas disponibles. Vous pouvez essayer le plan de ville.';notice.style.display='block';}});
+streets.on('tileerror',()=>{if(map.hasLayer(streets)){notice.textContent='Le plan de ville est temporairement indisponible. Essayez la vue aérienne.';notice.style.display='block';}});
 map.on('baselayerchange',()=>{notice.style.display='none';});
+photo.addTo(map);
 </script></body></html>"""
     components.html(html.replace("__POINTS__", coords), height=365, scrolling=False)
     st.html('<div class="map-frame"><span><i class="dot dot-a"></i>Départ</span><span><i class="dot dot-b"></i>Arrivée</span><span>Trait indicatif · à vol d’oiseau</span></div>')
