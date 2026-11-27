@@ -2,11 +2,7 @@ import streamlit as st
 import requests
 import os
 
-API_URL = st.secrets["API_URL"]
-
-
-if not API_URL:
-    API_URL = os.getenv("API_URL")
+API_URL = os.getenv("API_URL") or st.secrets["API_URL"]
 
 st.title("🚕 Taxi Fare Prediction")
 
@@ -37,7 +33,9 @@ if st.button("Predict fare"):
         "passenger_count": passenger_count,
     }
 
-    url = API_URL + "/predict"
+     url = API_URL.rstrip("/")
+    if not url.endswith("/predict"):
+        url += "/predict"
 
     try:
         response = requests.get(url, params=params, timeout=15)
